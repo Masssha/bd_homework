@@ -1,0 +1,85 @@
+import psycopg2
+# with psycopg2.connect(database="users", user="postgres", password="LLllMMmmqwerty654321") as conn:
+#     with conn.cursor() as cur:
+
+def create_table(cursor):
+    cursor.execute("""
+                CREATE TABLE IF NOT EXISTS users_python (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(40) NOT NULL,
+                surname VARCHAR(40) NOT NULL);
+                CREATE TABLE IF NOT EXISTS phones (
+                id SERIAL PRIMARY KEY,
+                phone_number VARCHAR(40),
+                id_user INTEGER NOT NULL REFERENCES users_python(id));
+                """);
+
+def add_new_user(cursor, user_name, user_surname, phone):
+    cursor.execute("""
+                INSERT INTO users_python(name, surname) values(%s, %s) RETURNING id; 
+    """, (user_name, user_surname));
+    cu = int(cur.fetchone()[0])
+    print(cu)
+    cursor.execute("""
+                INSERT INTO phones(id_user, phone_number) values(%s, %s);
+    """, (cu, phone));
+
+
+def add_new_user_phone(cursor, user_id, user_phone):
+    cursor.execute("""
+                INSERT INTO phones(id_user, phone_number) values(%s, %s) RETURNING id, id_user, phone_number;
+    """, (user_id, user_phone));
+    print(cur.fetchone())
+
+def update_user_data(cursor, user_id, user_name, user_surname, new_phone_number, old_phone_number):
+# def update_user_data(cursor, user_id, user_name=None, user_surname=None, new_phone_number=None, old_phone_number=None):
+# def update_user_data(cursor, user_id, user_name='%', user_surname='%', new_phone_number='%', old_phone_number='%'):
+    cursor.execute("""
+                UPDATE users_python SET name=%s, surname=%s WHERE id=%s RETURNING id, name, surname;
+                UPDATE phones SET phone_number=%s WHERE phone_number=%s RETURNING phone_number;
+    """, (user_name, user_surname, user_id, new_phone_number, old_phone_number));
+    print(cur.fetchall())
+
+def delete_user_phone(cursor, user_id, old_phone_number):
+    cursor.execute("""
+                DELETE FROM phones WHERE id_user=%s AND phone_number=%s RETURNING phone_number;
+    """, (user_id, old_phone_number));
+    print(cur.fetchall())
+
+def delete_user(cursor, user_id):
+    cursor.execute("""
+                DELETE FROM users_python WHERE id=%s;
+    """, (user_id,));
+
+def select_user(cursor, name, surname, phone):
+    cursor.execute("""
+    SELECT name, surname, phone_number FROM users_python 
+    LEFT JOIN phones ON users_python.id=phones.id_user
+    WHERE name=%s OR surname=%s OR phone_number=%s;
+    """, (name, surname, phone));
+    print(cur.fetchall())
+
+def second_select_user(cursor, name, surname, phone):
+    cursor.execute("""
+    SELECT name, surname, phone_number FROM users_python 
+    LEFT JOIN phones ON users_python.id=phones.id_user
+    WHERE name LIKE %s OR surname LIKE %s OR phone_number LIKE %s;
+    """, (f"%{name}%", f"%{surname}%", phone));
+    print(cur.fetchall())
+
+with psycopg2.connect(database="users", user="postgres", password="LLllMMmmqwerty654321") as conn:
+    with conn.cursor() as cur:
+
+        # create_table(cur)
+        # add_new_user(cur, "Sam", "Smith")
+        # add_new_user(cur, "Fediaaa", "Srrmith", phone="222235658")
+        # add_new_user_phone(cur, 1, "2223322")
+        # update_user_data(cur, 1, "Bob", "Smith", "131222", "111222")
+        # update_user_data(cur, 1, user_name="Byyyob") - не рабоатет( )
+        # delete_user_phone(cur, 1, "131222")
+        # delete_user(cur, 2)
+        # select_user(cur, "fhsrthrt", "Smith", "2223322")
+        second_select_user(cur, "fhsrthrt", "Smiths", "22233221") - тоже не работет( 
+conn.close()
+
+
