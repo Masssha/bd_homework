@@ -1,6 +1,4 @@
 import psycopg2
-# with psycopg2.connect(database="users", user="postgres", password="LLllMMmmqwerty654321") as conn:
-#     with conn.cursor() as cur:
 
 def create_table(cursor):
     cursor.execute("""
