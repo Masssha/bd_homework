@@ -29,29 +29,27 @@ def add_new_user_phone(cursor, user_id, user_phone):
     """, (user_id, user_phone));
     print(cur.fetchone())
 
-# def update_user_data(cursor, user_id, user_name, user_surname, new_phone_number, old_phone_number):
-def update_user_data(cursor, user_id, user_name=None, user_surname=None, new_phone_number=None, old_phone_number=None):
-# def update_user_data(cursor, user_id, user_name='%', user_surname='%', new_phone_number='%', old_phone_number='%'):
-    arg_list = {'user_name': user_name, "user_surname": user_surname, 'new_phone_number': new_phone_number, 'old_phone_number': old_phone_number}
-    for key, arg in arg_list.items():
-        if arg:
-    # cursor.execute("""
-    #     SELECT * from users_python
-    #     WHERE id = %s
-    #     """, (user_id, ));
-    # info = cur.fetchone()
-    # print(info)
-    # if user_name is None:
-    #     user_name = user_name;
-    # if user_surname is None:
-    #     user_surname = user_surname;
-    # if new_phone_number is None:
-    #     new_phone_number = new_phone_number;
-            cursor.execute("""
-                        UPDATE users_python SET name=%s, surname=%s WHERE id=%s RETURNING id, name, surname;
-                        UPDATE phones SET phone_number=%s WHERE phone_number=%s RETURNING phone_number;
-            """, (user_name, user_surname, user_id, new_phone_number, old_phone_number));
-            print(cur.fetchall())
+
+def update_user_data_two(cursor, user_id, user_name=None, user_surname=None, new_phone_number=None, old_phone_number=None):
+    cursor.execute("""
+        SELECT * from users_python
+        LEFT JOIN phones ON users_python.id=phones.id_user
+        WHERE users_python.id = %s
+        """, (user_id, ));
+    info = cur.fetchone()
+    print(info)
+    if user_name is None:
+        user_name = info[1];
+    if user_surname is None:
+        user_surname = info[2];
+    if new_phone_number is None:
+        new_phone_number = info[4];
+    cursor.execute("""
+                UPDATE users_python SET name=%s, surname=%s WHERE id=%s RETURNING id, name, surname;
+                UPDATE phones SET phone_number=%s WHERE phone_number=%s RETURNING phone_number;
+    """, (user_name, user_surname, user_id, new_phone_number, old_phone_number));
+    print(user_name)
+    print(cur.fetchall())
 
 def delete_user_phone(cursor, user_id, old_phone_number):
     cursor.execute("""
@@ -72,12 +70,12 @@ def select_user(cursor, name, surname, phone):
     """, (name, surname, phone));
     print(cur.fetchall())
 
-def second_select_user(cursor, name='%', surname='%', phone='%'):
+def second_select_user(cursor, name="%", surname="%", phone="%"):
     cursor.execute("""
     SELECT name, surname, phone_number FROM users_python 
     LEFT JOIN phones ON users_python.id=phones.id_user
-    WHERE name LIKE %s OR surname LIKE %s OR phone_number LIKE %s;
-    """, (name, f"%{surname}%", phone));
+    WHERE name LIKE %s AND surname LIKE %s AND phone_number LIKE %s;
+    """, (name, surname, phone));
     print(cur.fetchall())
 
 def drop_table(cursor, tables):
@@ -94,13 +92,18 @@ with psycopg2.connect(database="users", user="postgres", password="LLllMMmmqwert
         # add_new_user_phone(cur, 1, "2223322")
         # update_user_data(cur, 1, "Bob", "Smith", "131222", "111222")
         # update_user_data(cur, 1, user_name="Byyyob") - не рабоатет( )
-        update_user_data(cur, 1, user_name="Boddddb", user_surname="ss")
+        # update_user_data_two(cur, 1, user_name=None, user_surname="G")
+        # update_user_data_two(cur, 26, user_name="Misha", user_surname="Ge")
+        update_user_data_two(cur, 26, user_name="M")
         # delete_user_phone(cur, 1, "131222")
         # delete_user(cur, 2)
         # select_user(cur, "fhsrthrt", "Smit", "2223322")
         # select_user(cur, name='Bbdd%', surname='Smith', phone="%")
-        # select_user(cur, name='%', surname='Smit', phone="%")
+        # second_select_user(cur, surname="%mit%")
+        # second_select_user(cur, name="%ed%")
+
         # second_select_user(cur, "fhsrthrt", "Smiths", "22233221")
         # drop_table(cur, [publisher, book, stock, shop, sale])
 
 conn.close()
+
